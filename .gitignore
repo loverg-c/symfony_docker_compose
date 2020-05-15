@@ -1,0 +1,18 @@
+# Created by .ignore support plugin (hsz.mobi)
+node_modules/
+vendors/
+composer_cache/
+.idea/
+addok-docker/
+/.env
+*.db
+
+*.rdb
+
+addok/ban_odbl_addok-latest\.zip
+
+migrations/
+
+INSTALLATION_CESA.pdf
+
+deployement/.env

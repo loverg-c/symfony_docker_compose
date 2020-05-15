@@ -1,0 +1,51 @@
+version: '3.5'
+
+services:
+    php:
+        build:
+            context: php
+            args:
+                - HOST_UID=${HOST_UID:-4000}
+                - HOST_USER=${HOST_USER:-nodummy}
+                - HOST_GROUP=${HOST_GROUP:-1000}
+        container_name: ${COMPOSE_PROJECT_NAME}_php
+        ports:
+            - ${DOCKER_IP:-127.0.0.1}:${PHP_PORT_OUTSIDE_DOCKER-9000}:9000
+        volumes:
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}:/home/wwwroot/src_backend:cached
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}/medias/pdf:/home/wwwroot/src_backend/medias/pdf:cached
+            - ${COMPOSER_CACHE_PATH:-~/.composer}:/var/www/.composer
+            - /tmp
+        networks:
+            - net_backend
+        extra_hosts:
+          - "dockerhost:172.17.0.1"
+        user: ${HOST_USER:-nodummy}
+        security_opt:
+            - no-new-privileges
+        read_only: true
+        environment:
+            APP_ENV: ${APP_ENV:-dev}
+            UID: ${HOST_UID:-4000}
+            JWT_PASSPHRASE: ${JWT_PASSPHRASE}
+            MERCURE_JWT_PASSPHRASE: ${MERCURE_JWT_PASSPHRASE}
+            MERCURE_PUBLISH_PORT: ${MERCURE_PUBLISH_PORT:-MERCURE_PORT}
+            MERCURE_PUBLISH_HOST: ${MERCURE_PUBLISH_HOST}
+            COMPOSER_HOME: '/var/www/.composer'
+            TOKEN_TIMEOUT: ${TOKEN_TIMEOUT}
+            DATABASE_PREFIX_URL: ${DB_PROTOCOLE:-pgsql}://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}
+        cap_drop:
+            - ALL
+        restart: on-failure:5
+    gotemberg:
+        container_name: ${COMPOSE_PROJECT_NAME}_gotemberg
+        image: thecodingmachine/gotenberg:6.2
+        networks:
+            - net_backend
+        security_opt:
+            - no-new-privileges
+        cap_drop:
+            - ALL
+networks:
+    net_backend:
+        driver: bridge

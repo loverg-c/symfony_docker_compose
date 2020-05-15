@@ -1,0 +1,47 @@
+version: '3.5'
+
+services:
+    php:
+        image: ${PHP_REGISTRY}${REGISTRY_VERSION}
+        ports:
+            - ${DOCKER_IP:-127.0.0.1}:${PHP_PORT_OUTSIDE_DOCKER-9000}:9000
+        volumes:
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}:/home/wwwroot/src_backend:cached
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}/medias/pdf:/home/wwwroot/src_backend/medias/pdf:cached
+            - ${COMPOSER_CACHE_PATH:-~/.composer}:/var/www/.composer
+            - ${SQL_MIGRATION_PATH:-./migrations}:/var/www/sql_diff
+            - /tmp
+        networks:
+            - net_backend
+        extra_hosts:
+            - "dockerhost:172.17.0.1"
+        environment:
+            APP_ENV: ${APP_ENV:-prod}
+            JWT_PASSPHRASE: ${JWT_PASSPHRASE}
+            MERCURE_JWT_PASSPHRASE: ${MERCURE_JWT_PASSPHRASE}
+            MERCURE_PUBLISH_PORT: ${MERCURE_PUBLISH_PORT:-MERCURE_PORT}
+            MERCURE_PUBLISH_HOST: ${MERCURE_PUBLISH_HOST}
+            TOKEN_TIMEOUT: ${TOKEN_TIMEOUT}
+            DATABASE_PREFIX_URL: ${DB_PROTOCOLE:-pgsql}://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}
+        security_opt:
+            - no-new-privileges
+        restart: on-failure:5
+        cap_drop:
+            - ALL
+        user: ${HOST_USER:-nodummy}
+        read_only: true
+        logging:
+            driver: syslog
+            options:
+                syslog-address: ${SYSLOG_ADDRESS}
+                syslog-format:  ${SYSLOG_FORMAT}
+                tag: ${SYSLOG_PHP_TAG}
+    gotemberg:
+        image: thecodingmachine/gotenberg:6.2
+        networks:
+            - net_backend
+        security_opt:
+            - no-new-privileges
+networks:
+    net_backend:
+        driver: bridge

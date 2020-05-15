@@ -1,0 +1,21 @@
+version: '3.5'
+
+services:
+    yarn:
+        container_name:  ${COMPOSE_PROJECT_NAME}_yarn
+        build:
+            context: yarn
+            args:
+                - HOST_UID=${HOST_UID:-4000}
+                - HOST_USER=${HOST_USER:-nodummy}
+                - HOST_GROUP=${HOST_GROUP:-1000}
+        working_dir: /usr/src/app
+        volumes:
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}:/usr/src/app/:cached
+            - ${YARN_CACHE_PATH:-~/.cache}:/usr/src/.cache
+        security_opt:
+            - no-new-privileges
+        cap_drop:
+          - ALL
+        environment:
+            YARN_CACHE_FOLDER: /usr/src/.cache

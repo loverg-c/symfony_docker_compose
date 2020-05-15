@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+    postgis:
+        image: mdillon/postgis:11-alpine
+        container_name:  ${COMPOSE_PROJECT_NAME}_postgis
+        volumes:
+            - postgis_volume:/var/lib/postgresql:cached
+        ports:
+            - ${DB_PORT_OUTSIDE_DOCKER}:5432
+        restart: unless-stopped
+        networks:
+            - net_db
+            - net_backend
+        environment:
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_NAME}
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"] #Are you really up?
+            interval: 2s
+            timeout: 30s
+            retries: 15
+    php:
+        links:
+            - postgis:pgdb
+        depends_on:
+            - postgis
+volumes:
+    postgis_volume:
+networks:
+    net_db:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: ${DOCKER_SUBNET}

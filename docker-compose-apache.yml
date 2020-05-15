@@ -1,0 +1,17 @@
+version: '3.5'
+
+services:
+    apache:
+        build: apache
+        container_name: ${COMPOSE_PROJECT_NAME}_apache
+        ports:
+            -  ${APACHE_PORT_OUTSIDE_DOCKER}:80
+        volumes:
+            - ./apache/vhosts:/etc/apache2/sites-enabled:cached
+            - ${PROJECT_PATH_OUTSIDE_DOCKER}:/home/wwwroot/src_backend:cached
+        depends_on:
+            - php
+        networks:
+            - net_backend
+        environment:
+            COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
